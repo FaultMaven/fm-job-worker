@@ -3,10 +3,14 @@ FROM python:3.11-slim as builder
 
 WORKDIR /app
 
-# Copy dependency files
-COPY pyproject.toml ./
+# Install git (needed for fm-core-lib dependency)
+RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies
+# Copy all files needed for installation
+COPY pyproject.toml ./
+COPY src/ ./src/
+
+# Install package and dependencies
 RUN pip install --no-cache-dir -e .
 
 # Production stage
