@@ -1,0 +1,91 @@
+name: Generate Documentation
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  generate-docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Generate Task Documentation
+        run: |
+          python -c "
+          import os
+          from job_worker.celery_app import app
+
+          # Create docs directory
+          os.makedirs('docs', exist_ok=True)
+
+          # Generate task list
+          tasks = sorted(app.tasks.keys())
+
+          with open('docs/TASKS.md', 'w') as f:
+              f.write('# FaultMaven Job Worker - Task Reference\n\n')
+              f.write('## Available Tasks\n\n')
+
+              for task_name in tasks:
+                  if not task_name.startswith('celery.'):
+                      f.write(f'- \`{task_name}\`\n')
+
+              f.write('\n## Periodic Tasks\n\n')
+              for name, schedule in app.conf.beat_schedule.items():
+                  f.write(f'- **{name}**: \`{schedule[\"task\"]}\`\n')
+                  f.write(f'  - Schedule: {schedule[\"schedule\"]}\n\n')
+
+          print('✅ Task documentation generated')
+          "
+
+      - name: Check for documentation changes
+        id: check_changes
+        run: |
+          git add docs/*.md 2>/dev/null || true
+          if git diff --staged --quiet; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "📝 No documentation changes detected"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "📝 Documentation changes detected"
+            git diff --staged --stat
+          fi
+
+      - name: Commit and push documentation
+        if: |
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs: Auto-generate task documentation [skip ci]
+
+          - Updated task reference
+          - Documentation timestamp: $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload docs as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: task-docs
+          path: docs/
+          retention-days: 30
