@@ -1,6 +1,12 @@
 # fm-job-worker
 
+> **Part of [FaultMaven](https://github.com/FaultMaven/faultmaven)** —
+> The AI-Powered Troubleshooting Copilot
+
 FaultMaven Job Worker - Celery-based async task processing for background jobs.
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://hub.docker.com/r/faultmaven/fm-job-worker)
 
 ## Overview
 
@@ -81,6 +87,22 @@ pytest
 black src tests
 ```
 
+## Contributing
+
+See our [Contributing Guide](https://github.com/FaultMaven/.github/blob/main/CONTRIBUTING.md) for detailed guidelines.
+
+## Support
+
+- **Discussions:** [GitHub Discussions](https://github.com/FaultMaven/faultmaven/discussions)
+- **Issues:** [GitHub Issues](https://github.com/FaultMaven/fm-job-worker/issues)
+
+## Related Projects
+
+- **[faultmaven](https://github.com/FaultMaven/faultmaven)** - Main repository and documentation
+- **[faultmaven-deploy](https://github.com/FaultMaven/faultmaven-deploy)** - Deployment configurations
+- **[fm-knowledge-service](https://github.com/FaultMaven/fm-knowledge-service)** - Knowledge base service
+- **[fm-case-service](https://github.com/FaultMaven/fm-case-service)** - Case management service
+
 ## License
 
-MIT
+Apache 2.0 - See [LICENSE](LICENSE) for details.
