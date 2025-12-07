@@ -57,14 +57,19 @@ celery -A job_worker.celery_app beat --loglevel=info
 ### Docker
 
 ```bash
-# Worker
+# Build image
 docker build -t faultmaven/fm-job-worker .
+
+# Run worker
 docker run -e REDIS_HOST=redis -e REDIS_PORT=6379 faultmaven/fm-job-worker
 
-# Beat scheduler
-docker build -f Dockerfile.beat -t faultmaven/fm-job-worker-beat .
-docker run -e REDIS_HOST=redis -e REDIS_PORT=6379 faultmaven/fm-job-worker-beat
+# Run beat scheduler (same image, different command)
+docker run -e REDIS_HOST=redis -e REDIS_PORT=6379 \
+  faultmaven/fm-job-worker \
+  celery -A job_worker.celery_app beat --loglevel=info
 ```
+
+**Note:** The beat scheduler uses the same Docker image as the worker, but with a different command. This follows best practices by avoiding duplicate images.
 
 ## Configuration
 
