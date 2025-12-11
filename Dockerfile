@@ -3,12 +3,13 @@ FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Install git (needed for fm-core-lib dependency)
-RUN apt-get update && apt-get install -y --no-install-recommends git && rm -rf /var/lib/apt/lists/*
+# Copy fm-core-lib first (required dependency)
+COPY fm-core-lib/ ./fm-core-lib/
+RUN pip install --no-cache-dir ./fm-core-lib
 
 # Copy all files needed for installation
-COPY pyproject.toml ./
-COPY src/ ./src/
+COPY fm-job-worker/pyproject.toml ./
+COPY fm-job-worker/src/ ./src/
 
 # Install package and dependencies
 RUN pip install --no-cache-dir -e .
@@ -23,7 +24,7 @@ COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
-COPY src/ ./src/
+COPY fm-job-worker/src/ ./src/
 
 # Environment variables
 ENV PYTHONPATH=/app
