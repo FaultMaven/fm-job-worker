@@ -91,8 +91,15 @@ jobs:
 
       - name: Run tests
         run: |
-          # TODO: Add real tests - currently none; smoke test is primary gate
-          pytest --maxfail=1 --disable-warnings -q || true
+          # pytest exit code 5 == "no tests collected" (acceptable for now; smoke is the gate)
+          set +e
+          pytest --maxfail=1 --disable-warnings -q
+          code=$?
+          if [ "$code" -eq 5 ]; then
+            echo "No tests collected; smoke test is the primary gate for now."
+            exit 0
+          fi
+          exit "$code"
 
   smoke:
     name: Smoke test (Celery worker)
@@ -206,22 +213,3 @@ jobs:
           kubectl rollout undo deployment/${{ env.SERVICE_NAME }} -n faultmaven
           kubectl rollout status deployment/${{ env.SERVICE_NAME }} -n faultmaven --timeout=300s
 
-  # ============================================================================
-  # Pipeline Summary
-  # ============================================================================
-  summary:
-    name: Pipeline Summary
-    needs: [build, integration-test, deploy]
-    if: always() && github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Pipeline summary
-        run: |
-          echo "### 📊 CI/CD Pipeline Complete" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Build & Push | ${{ needs.build.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Integration Test | ${{ needs.integration-test.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Production Deploy | ${{ needs.deploy.result == 'success' && '✅ Passed' || needs.deploy.result == 'skipped' && '⏭️ Skipped' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
