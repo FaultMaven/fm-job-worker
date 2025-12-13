@@ -1,10 +1,19 @@
-name: Test
+name: Test (LEGACY - MANUAL ONLY)
+
+# DEPRECATED: Do not use for routine testing.
+# This workflow runs independently from the hardened CI/CD pipeline in ci.yml.
+# Use ci.yml which includes build → unit tests → smoke tests → push.
+#
+# This workflow is kept for emergency scenarios only.
+# Trigger manually via workflow_dispatch if needed.
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual test run (required)'
+        required: true
+        type: string
 
 jobs:
   test:
